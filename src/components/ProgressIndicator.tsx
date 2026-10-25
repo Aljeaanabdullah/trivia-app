@@ -1,8 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
+import { useTheme } from '@/state/SettingsProvider';
+import { glow, spacing } from '@/theme/tokens';
 import type { AnswerRecord } from '@/types/trivia';
-import { darkColors as c, glow, spacing } from '@/theme/tokens';
 
 interface ProgressIndicatorProps {
   total: number;
@@ -10,7 +11,9 @@ interface ProgressIndicatorProps {
   history: AnswerRecord[];
 }
 
+/** One segment per question; follows reading direction automatically via flex row. */
 export function ProgressIndicator({ total, currentIndex, history }: ProgressIndicatorProps) {
+  const { colors: c } = useTheme();
   return (
     <View
       style={styles.row}
@@ -20,7 +23,7 @@ export function ProgressIndicator({ total, currentIndex, history }: ProgressIndi
     >
       {Array.from({ length: total }, (_, i) => {
         const record = history[i];
-        const color = record ? (record.correct ? c.gold : c.danger) : i === currentIndex ? c.primaryGlow : 'rgba(147,164,204,0.2)';
+        const color = record ? (record.correct ? c.gold : c.danger) : i === currentIndex ? c.primaryGlow : c.track;
         return <Segment key={i} color={color} active={i === currentIndex && !record} />;
       })}
     </View>

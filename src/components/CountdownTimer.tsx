@@ -14,8 +14,9 @@ import Svg, { Circle } from 'react-native-svg';
 
 import { GAME_CONFIG } from '@/features/game/config';
 import { useCountdown } from '@/features/game/useCountdown';
-import { en } from '@/i18n/en';
-import { darkColors as c, glow } from '@/theme/tokens';
+import { useI18n, useTheme } from '@/state/SettingsProvider';
+import { glow } from '@/theme/tokens';
+import { fonts } from '@/theme/typography';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -37,6 +38,8 @@ interface CountdownTimerProps {
  */
 export function CountdownTimer({ durationSeconds, running, onExpire }: CountdownTimerProps) {
   const { secondsLeft, remainingMs } = useCountdown({ durationSeconds, running, onExpire });
+  const { colors: c } = useTheme();
+  const { t } = useI18n();
   const reduceMotion = useReducedMotion();
   const progress = useSharedValue(1);
   const pulse = useSharedValue(1);
@@ -62,13 +65,17 @@ export function CountdownTimer({ durationSeconds, running, onExpire }: Countdown
 
   return (
     <Animated.View
-      style={[styles.wrap, { boxShadow: glow(urgent ? 'rgba(255,77,109,0.6)' : 'rgba(79,195,255,0.45)', 16) }, pulseStyle]}
+      style={[
+        styles.wrap,
+        { backgroundColor: c.chip, boxShadow: glow(urgent ? c.glowDanger : c.glowPrimary, 16) },
+        pulseStyle,
+      ]}
       accessible
       accessibilityRole="timer"
-      accessibilityLabel={en.secondsLeft(secondsLeft)}
+      accessibilityLabel={t.secondsLeft(secondsLeft)}
     >
       <Svg width={SIZE} height={SIZE} style={styles.svg}>
-        <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} stroke="rgba(147,164,204,0.18)" strokeWidth={STROKE} fill="none" />
+        <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} stroke={c.track} strokeWidth={STROKE} fill="none" />
         <AnimatedCircle
           cx={SIZE / 2}
           cy={SIZE / 2}
@@ -82,16 +89,18 @@ export function CountdownTimer({ durationSeconds, running, onExpire }: Countdown
         />
       </Svg>
       <View style={styles.center}>
-        <Text style={[styles.value, { color }]}>{secondsLeft}</Text>
+        <Text style={[styles.value, { color }]} maxFontSizeMultiplier={1.2}>
+          {secondsLeft}
+        </Text>
       </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: SIZE, height: SIZE, borderRadius: SIZE / 2, backgroundColor: 'rgba(10,16,48,0.75)' },
+  wrap: { width: SIZE, height: SIZE, borderRadius: SIZE / 2 },
   // Start the sweep at 12 o'clock.
   svg: { transform: [{ rotate: '-90deg' }] },
-  center: { position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center' },
-  value: { fontSize: 22, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  center: { position: 'absolute', top: 0, bottom: 0, start: 0, end: 0, alignItems: 'center', justifyContent: 'center' },
+  value: { fontSize: 22, fontFamily: fonts.displayBold, fontVariant: ['tabular-nums'] },
 });

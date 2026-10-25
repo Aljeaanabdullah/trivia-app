@@ -1,30 +1,46 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import type { ComponentProps } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
+import { hapticTap } from '@/animation/haptics';
 import { pressSpring } from '@/animation/motion';
-import { darkColors as c, fontSize, glow, radius, spacing } from '@/theme/tokens';
+import { useThemedStyles, useTheme } from '@/state/SettingsProvider';
+import { fontSize, glow, radius, spacing, type ColorTokens } from '@/theme/tokens';
+import { fonts } from '@/theme/typography';
+
+export type IconName = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
 interface NeonButtonProps {
   label: string;
   onPress: () => void;
   variant?: 'primary' | 'ghost';
+  icon?: IconName;
   disabled?: boolean;
+  accessibilityHint?: string;
 }
 
-export function NeonButton({ label, onPress, variant = 'primary', disabled }: NeonButtonProps) {
+export function NeonButton({ label, onPress, variant = 'primary', icon, disabled, accessibilityHint }: NeonButtonProps) {
+  const { colors: c } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const primary = variant === 'primary';
+  const contentColor = primary ? c.onPrimary : c.text;
 
   return (
     <Animated.View style={[animatedStyle, primary && styles.primaryGlow, disabled && styles.disabled]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label}
-        accessibilityState={{ disabled }}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled: !!disabled }}
         disabled={disabled}
-        onPress={onPress}
+        onPress={() => {
+          hapticTap();
+          onPress();
+        }}
         onPressIn={() => scale.set(withSpring(0.95, pressSpring))}
         onPressOut={() => scale.set(withSpring(1, pressSpring))}
         style={[styles.base, !primary && styles.ghost]}
@@ -37,25 +53,30 @@ export function NeonButton({ label, onPress, variant = 'primary', disabled }: Ne
             style={StyleSheet.absoluteFill}
           />
         )}
-        <Text style={[styles.label, primary ? styles.primaryLabel : styles.ghostLabel]}>{label}</Text>
+        {icon && <MaterialCommunityIcons name={icon} size={22} color={contentColor} />}
+        <Text style={[styles.label, { color: contentColor }]} maxFontSizeMultiplier={1.4}>
+          {label}
+        </Text>
       </Pressable>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    minHeight: 56,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  primaryGlow: { borderRadius: radius.pill, boxShadow: glow('rgba(79, 195, 255, 0.55)', 22) },
-  ghost: { borderWidth: 1.5, borderColor: c.border, backgroundColor: 'rgba(10, 16, 48, 0.6)' },
-  label: { fontSize: fontSize.label, fontWeight: '800', letterSpacing: 0.4 },
-  primaryLabel: { color: c.onPrimary },
-  ghostLabel: { color: c.text },
-  disabled: { opacity: 0.5 },
-});
+const makeStyles = (c: ColorTokens) =>
+  StyleSheet.create({
+    base: {
+      minHeight: 56,
+      borderRadius: radius.pill,
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.sm,
+      flexDirection: 'row',
+      gap: spacing.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'hidden',
+    },
+    primaryGlow: { borderRadius: radius.pill, boxShadow: glow(c.glowPrimary, 22) },
+    ghost: { borderWidth: 1.5, borderColor: c.border, backgroundColor: c.chip },
+    label: { fontSize: fontSize.label, fontFamily: fonts.extrabold, letterSpacing: 0.3 },
+    disabled: { opacity: 0.5 },
+  });

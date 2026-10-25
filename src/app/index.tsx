@@ -1,44 +1,53 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { NeonBackground } from '@/components/NeonBackground';
+import { IconButton } from '@/components/IconButton';
 import { NeonButton } from '@/components/NeonButton';
-import { en } from '@/i18n/en';
-import { darkColors as c, fontSize, spacing } from '@/theme/tokens';
+import { Screen } from '@/components/Screen';
+import { useI18n, useThemedStyles } from '@/state/SettingsProvider';
+import { directionProps } from '@/theme/direction';
+import { fontSize, spacing, type ColorTokens } from '@/theme/tokens';
+import { fonts } from '@/theme/typography';
 
-/** Minimal launcher for Phase 2. Player entry, settings and categories replace it in later phases. */
 export default function HomeScreen() {
+  const { t } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   return (
-    <NeonBackground>
-      <SafeAreaView style={styles.safe}>
-        <Animated.View entering={FadeInUp.duration(600)} style={styles.brand}>
+    <Screen contentStyle={styles.content} maxWidth={520}>
+      <View style={styles.topBar}>
+        <IconButton icon="cog" label={t.settings} onPress={() => router.push('/settings')} />
+      </View>
+      <Animated.View entering={FadeInUp.duration(600)} style={styles.brand}>
+        {/* The brand name stays Latin in both languages. */}
+        <View {...directionProps('ltr')}>
           <Text style={styles.logo} accessibilityRole="header">
             Brain<Text style={styles.logoAccent}>Byte</Text>
           </Text>
-          <Text style={styles.tagline}>{en.tagline}</Text>
-        </Animated.View>
-        <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.cta}>
-          <NeonButton label={en.startDemo} onPress={() => router.push('/game')} />
-        </Animated.View>
-      </SafeAreaView>
-    </NeonBackground>
+        </View>
+        <Text style={styles.tagline}>{t.tagline}</Text>
+      </Animated.View>
+      <Animated.View entering={FadeInDown.delay(200).duration(500)} style={styles.cta}>
+        <NeonButton label={t.play} icon="play" onPress={() => router.push('/game')} />
+      </Animated.View>
+    </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, justifyContent: 'center', padding: spacing.xl, gap: spacing.xxl * 2 },
-  brand: { alignItems: 'center', gap: spacing.sm },
-  logo: {
-    color: c.text,
-    fontSize: 46,
-    fontWeight: '900',
-    letterSpacing: 1,
-    textShadowColor: c.primaryGlow,
-    textShadowRadius: 18,
-  },
-  logoAccent: { color: c.primaryGlow },
-  tagline: { color: c.textMuted, fontSize: fontSize.body },
-  cta: { width: '100%', maxWidth: 420, alignSelf: 'center' },
-});
+const makeStyles = (c: ColorTokens) =>
+  StyleSheet.create({
+    content: { flexGrow: 1, justifyContent: 'space-between' },
+    topBar: { flexDirection: 'row', justifyContent: 'flex-end' },
+    brand: { alignItems: 'center', gap: spacing.sm },
+    logo: {
+      color: c.text,
+      fontSize: 40,
+      fontFamily: fonts.display,
+      letterSpacing: 1,
+      textShadowColor: c.primaryGlow,
+      textShadowRadius: 18,
+    },
+    logoAccent: { color: c.primaryGlow },
+    tagline: { color: c.textMuted, fontSize: fontSize.body, fontFamily: fonts.semibold, textAlign: 'center' },
+    cta: { gap: spacing.md },
+  });

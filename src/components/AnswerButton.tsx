@@ -11,7 +11,9 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { popSpring, pressSpring } from '@/animation/motion';
-import { darkColors as c, fontSize, glow, radius, spacing } from '@/theme/tokens';
+import { useI18n, useThemedStyles, useTheme } from '@/state/SettingsProvider';
+import { fontSize, glow, radius, spacing, type ColorTokens } from '@/theme/tokens';
+import { fonts } from '@/theme/typography';
 
 /** idle: selectable · correct: chosen and right · wrong: chosen and wrong · reveal: the right answer after a miss · dimmed: other choices after locking. */
 export type AnswerState = 'idle' | 'correct' | 'wrong' | 'reveal' | 'dimmed';
@@ -24,17 +26,27 @@ interface AnswerButtonProps {
   onPress: (index: number) => void;
 }
 
-const LETTERS = ['A', 'B', 'C', 'D'];
+const LETTERS = { en: ['A', 'B', 'C', 'D'], ar: ['أ', 'ب', 'ج', 'د'] } as const;
 
-const palette: Record<AnswerState, { border: string; bg: string; badge: string; shadow?: string }> = {
-  idle: { border: c.border, bg: 'rgba(17,26,61,0.85)', badge: c.primary, shadow: glow('rgba(47,140,255,0.22)', 12) },
-  correct: { border: c.gold, bg: c.goldSoft, badge: c.gold, shadow: glow('rgba(255,200,61,0.7)', 22) },
-  reveal: { border: c.gold, bg: c.goldSoft, badge: c.gold, shadow: glow('rgba(255,200,61,0.4)', 14) },
-  wrong: { border: c.danger, bg: c.dangerSoft, badge: c.danger, shadow: glow('rgba(255,77,109,0.6)', 18) },
-  dimmed: { border: 'rgba(147,164,204,0.15)', bg: 'rgba(17,26,61,0.5)', badge: 'rgba(147,164,204,0.35)' },
-};
+function paletteFor(state: AnswerState, c: ColorTokens) {
+  switch (state) {
+    case 'correct':
+      return { border: c.gold, bg: c.goldSoft, badge: c.gold, badgeText: c.onGold, shadow: glow(c.glowGold, 22) };
+    case 'reveal':
+      return { border: c.gold, bg: c.goldSoft, badge: c.gold, badgeText: c.onGold, shadow: glow(c.glowGold, 12) };
+    case 'wrong':
+      return { border: c.danger, bg: c.dangerSoft, badge: c.danger, badgeText: '#FFFFFF', shadow: glow(c.glowDanger, 18) };
+    case 'dimmed':
+      return { border: c.borderMuted, bg: c.chip, badge: c.track, badgeText: c.textMuted, shadow: undefined };
+    default:
+      return { border: c.border, bg: c.surface, badge: c.primary, badgeText: c.onPrimary, shadow: glow(c.glowPrimary, 10) };
+  }
+}
 
 export function AnswerButton({ index, label, state, disabled, onPress }: AnswerButtonProps) {
+  const { colors: c } = useTheme();
+  const { t, language, textStart } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const reduceMotion = useReducedMotion();
   const scale = useSharedValue(1);
   const shakeX = useSharedValue(0);
@@ -44,10 +56,10 @@ export function AnswerButton({ index, label, state, disabled, onPress }: AnswerB
     if (state === 'wrong') {
       shakeX.set(
         withSequence(
-        withTiming(-10, { duration: 50 }),
-        withTiming(10, { duration: 50 }),
-        withTiming(-7, { duration: 50 }),
-        withTiming(7, { duration: 50 }),
+          withTiming(-10, { duration: 50 }),
+          withTiming(10, { duration: 50 }),
+          withTiming(-7, { duration: 50 }),
+          withTiming(7, { duration: 50 }),
           withTiming(0, { duration: 50 }),
         ),
       );
@@ -60,17 +72,17 @@ export function AnswerButton({ index, label, state, disabled, onPress }: AnswerB
     transform: [{ translateX: shakeX.value }, { scale: scale.value }],
   }));
 
-  const colors = palette[state];
-  const letter = LETTERS[index];
-  const statusMark = state === 'correct' || state === 'reveal' ? '✓' : state === 'wrong' ? '✕' : null;
+  const colors = paletteFor(state, c);
+  const letter = LETTERS[language][index];
+  const statusIcon = state === 'correct' || state === 'reveal' ? '✓' : state === 'wrong' ? '✕' : null;
 
   return (
     // Layout animation on the wrapper so it never fights the shake/scale transform.
-    <Animated.View entering={FadeInDown.delay(140 + index * 70).duration(380)}>
+    <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(140 + index * 70).duration(380)}>
       <Animated.View style={animatedStyle}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${letter}. ${label}`}
+          accessibilityLabel={t.answerOption(letter, label)}
           accessibilityState={{ disabled, selected: state === 'correct' || state === 'wrong' }}
           disabled={disabled}
           onPress={() => onPress(index)}
@@ -79,30 +91,37 @@ export function AnswerButton({ index, label, state, disabled, onPress }: AnswerB
           style={[styles.button, { borderColor: colors.border, backgroundColor: colors.bg, boxShadow: colors.shadow }]}
         >
           <View style={[styles.badge, { backgroundColor: colors.badge }]}>
-            <Text style={styles.badgeText}>{letter}</Text>
+            <Text style={[styles.badgeText, { color: colors.badgeText }]} maxFontSizeMultiplier={1.2}>
+              {letter}
+            </Text>
           </View>
-          <Text style={[styles.label, state === 'dimmed' && styles.dimmedLabel]}>{label}</Text>
-          {statusMark && <Text style={[styles.mark, { color: colors.border }]}>{statusMark}</Text>}
+          <Text style={[styles.label, { textAlign: textStart }, state === 'dimmed' && styles.dimmedLabel]}>{label}</Text>
+          {statusIcon && (
+            <Text style={[styles.mark, { color: colors.border }]} importantForAccessibility="no">
+              {statusIcon}
+            </Text>
+          )}
         </Pressable>
       </Animated.View>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    minHeight: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-  },
-  badge: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  badgeText: { color: c.onPrimary, fontWeight: '900', fontSize: fontSize.body },
-  label: { flex: 1, color: c.text, fontSize: fontSize.label, fontWeight: '700' },
-  dimmedLabel: { color: c.textMuted },
-  mark: { fontSize: 20, fontWeight: '900', paddingHorizontal: spacing.xs },
-});
+const makeStyles = (c: ColorTokens) =>
+  StyleSheet.create({
+    button: {
+      minHeight: 60,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.md,
+      borderWidth: 1.5,
+    },
+    badge: { width: 36, minHeight: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+    badgeText: { fontFamily: fonts.black, fontSize: fontSize.body, lineHeight: 24 },
+    label: { flex: 1, color: c.text, fontSize: fontSize.label, lineHeight: 26, fontFamily: fonts.bold },
+    dimmedLabel: { color: c.textMuted },
+    mark: { fontSize: 20, fontFamily: fonts.black, paddingHorizontal: spacing.xs },
+  });

@@ -1,7 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { en } from '@/i18n/en';
-import { darkColors as c, fontSize, radius, spacing } from '@/theme/tokens';
+import { useI18n, useThemedStyles } from '@/state/SettingsProvider';
+import { fontSize, spacing, type ColorTokens } from '@/theme/tokens';
+import { fonts } from '@/theme/typography';
+import { IconButton } from './IconButton';
 
 interface GameHeaderProps {
   playerName: string;
@@ -12,43 +14,27 @@ interface GameHeaderProps {
 }
 
 export function GameHeader({ playerName, categoryName, questionNumber, totalQuestions, onQuit }: GameHeaderProps) {
+  const { t, textStart } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.row}>
-      <Pressable
-        onPress={onQuit}
-        accessibilityRole="button"
-        accessibilityLabel={en.quit}
-        hitSlop={12}
-        style={styles.quit}
-      >
-        <Text style={styles.quitText}>✕</Text>
-      </Pressable>
+      <IconButton icon="close" label={t.quit} onPress={onQuit} />
       <View style={styles.titles}>
-        <Text style={styles.category} numberOfLines={1}>
+        <Text style={[styles.category, { textAlign: textStart }]} numberOfLines={1}>
           {categoryName}
         </Text>
-        <Text style={styles.meta} numberOfLines={1}>
-          {playerName} · {en.questionOf(questionNumber, totalQuestions)}
+        <Text style={[styles.meta, { textAlign: textStart }]} numberOfLines={1}>
+          {playerName} · {t.questionOf(questionNumber, totalQuestions)}
         </Text>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  quit: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: c.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(10,16,48,0.6)',
-  },
-  quitText: { color: c.textMuted, fontSize: 18, fontWeight: '700' },
-  titles: { flex: 1 },
-  category: { color: c.text, fontSize: fontSize.label, fontWeight: '800' },
-  meta: { color: c.textMuted, fontSize: fontSize.caption + 1, marginTop: 2 },
-});
+const makeStyles = (c: ColorTokens) =>
+  StyleSheet.create({
+    row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    titles: { flex: 1 },
+    category: { color: c.text, fontSize: fontSize.label, fontFamily: fonts.extrabold, lineHeight: 26 },
+    meta: { color: c.textMuted, fontSize: fontSize.caption + 1, fontFamily: fonts.semibold, lineHeight: 20 },
+  });

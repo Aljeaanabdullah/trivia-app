@@ -11,16 +11,22 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { cardEntrance, floatCycle } from '@/animation/motion';
-import { darkColors as c, fontSize, glow, radius, spacing } from '@/theme/tokens';
+import { useThemedStyles, useTheme } from '@/state/SettingsProvider';
+import { fontSize, glow, radius, spacing, type ColorTokens } from '@/theme/tokens';
+import { fonts } from '@/theme/typography';
 
 interface QuestionCardProps {
   text: string;
   /** Freezes the idle float once an answer is locked in. */
   settled: boolean;
+  /** Small label above the question, e.g. the category. */
+  eyebrow?: string;
 }
 
 /** Floating glass card. Remount it (via `key`) per question to replay the entrance. */
-export function QuestionCard({ text, settled }: QuestionCardProps) {
+export function QuestionCard({ text, settled, eyebrow }: QuestionCardProps) {
+  const { colors: c } = useTheme();
+  const styles = useThemedStyles(makeStyles);
   const reduceMotion = useReducedMotion();
   const enter = useSharedValue(reduceMotion ? 1 : 0);
   const float = useSharedValue(0);
@@ -51,17 +57,9 @@ export function QuestionCard({ text, settled }: QuestionCardProps) {
 
   return (
     <Animated.View style={[styles.shadow, animatedStyle]}>
-      <LinearGradient
-        colors={['rgba(47,140,255,0.22)', 'rgba(17,26,61,0.92)', 'rgba(155,92,255,0.2)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.card}
-      >
-        <LinearGradient
-          colors={['rgba(255,255,255,0.14)', 'rgba(255,255,255,0)']}
-          style={styles.sheen}
-          pointerEvents="none"
-        />
+      <LinearGradient colors={c.cardGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.card}>
+        <LinearGradient colors={[c.cardSheen, 'transparent']} style={styles.sheen} pointerEvents="none" />
+        {eyebrow ? <Text style={styles.eyebrow}>{eyebrow}</Text> : null}
         <Text style={styles.text} accessibilityRole="header">
           {text}
         </Text>
@@ -70,21 +68,31 @@ export function QuestionCard({ text, settled }: QuestionCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  shadow: {
-    borderRadius: radius.lg,
-    boxShadow: `${glow('rgba(79,155,255,0.35)', 28)}, 0 18px 32px rgba(0,0,0,0.55)`,
-  },
-  card: {
-    minHeight: 150,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    borderColor: c.border,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xxl,
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  sheen: { position: 'absolute', top: 0, left: 0, right: 0, height: '45%' },
-  text: { color: c.text, fontSize: fontSize.title, lineHeight: 32, fontWeight: '800', textAlign: 'center' },
-});
+const makeStyles = (c: ColorTokens) =>
+  StyleSheet.create({
+    shadow: {
+      borderRadius: radius.lg,
+      boxShadow: `${glow(c.glowPrimary, 28)}, 0 18px 32px ${c.depthShadow}`,
+    },
+    card: {
+      minHeight: 150,
+      borderRadius: radius.lg,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      paddingHorizontal: spacing.xl,
+      paddingVertical: spacing.xl,
+      justifyContent: 'center',
+      gap: spacing.sm,
+      overflow: 'hidden',
+    },
+    sheen: { position: 'absolute', top: 0, start: 0, end: 0, height: '45%' },
+    eyebrow: {
+      color: c.primaryGlow,
+      fontSize: fontSize.caption,
+      fontFamily: fonts.bold,
+      textAlign: 'center',
+      letterSpacing: 1,
+    },
+    // Cairo has tall Arabic ascenders; a generous lineHeight prevents clipping.
+    text: { color: c.text, fontSize: fontSize.title, lineHeight: 36, fontFamily: fonts.extrabold, textAlign: 'center' },
+  });
