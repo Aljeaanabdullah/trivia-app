@@ -170,7 +170,7 @@ const makeStyles = (c: ColorTokens) =>
     rank: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
     rankText: { color: c.text, fontSize: fontSize.body, fontFamily: fonts.black },
     flex: { flex: 1 },
-    name: { color: c.text, fontSize: fontSize.label, fontFamily: fonts.extrabold, lineHeight: 26 },
+    name: { color: c.text, fontSize: fontSize.label, fontFamily: fonts.extrabold },
     meta: { color: c.textMuted, fontSize: fontSize.caption, fontFamily: fonts.semibold },
     scoreCol: { alignItems: 'flex-end' },
     score: { color: c.gold, fontSize: fontSize.title, fontFamily: fonts.displayBold },

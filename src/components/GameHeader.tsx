@@ -35,6 +35,6 @@ const makeStyles = (c: ColorTokens) =>
   StyleSheet.create({
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     titles: { flex: 1 },
-    category: { color: c.text, fontSize: fontSize.label, fontFamily: fonts.extrabold, lineHeight: 26 },
-    meta: { color: c.textMuted, fontSize: fontSize.caption + 1, fontFamily: fonts.semibold, lineHeight: 20 },
+    category: { color: c.text, fontSize: fontSize.label, fontFamily: fonts.extrabold },
+    meta: { color: c.textMuted, fontSize: fontSize.caption + 1, fontFamily: fonts.semibold },
   });

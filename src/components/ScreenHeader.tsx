@@ -44,6 +44,6 @@ const makeStyles = (c: ColorTokens) =>
   StyleSheet.create({
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     titles: { flex: 1 },
-    title: { color: c.text, fontSize: fontSize.title, fontFamily: fonts.black, lineHeight: 32 },
+    title: { color: c.text, fontSize: fontSize.title, fontFamily: fonts.black },
     subtitle: { color: c.textMuted, fontSize: fontSize.caption + 1, fontFamily: fonts.semibold },
   });

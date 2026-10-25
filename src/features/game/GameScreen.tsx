@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
-import { AppState, StyleSheet, Text, View } from 'react-native';
+import { AppState, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
 import { hapticError, hapticSuccess, hapticTap } from '@/animation/haptics';
@@ -58,6 +58,8 @@ export function GameScreen({ player, category }: GameScreenProps) {
   // Index of the question currently playing its exit animation, if any.
   const [leavingIndex, setLeavingIndex] = useState<number | null>(null);
   const reduceMotion = useReducedMotion();
+  // Unfolded Z Fold / tablets / landscape: wider stage with a 2×2 answer grid.
+  const wide = useWindowDimensions().width >= 700;
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finished = useRef(false);
   const leaving = leavingIndex === state.index;
@@ -137,7 +139,7 @@ export function GameScreen({ player, category }: GameScreenProps) {
   const outcome = state.timedOut ? 'timeout' : state.selectedIndex === question.correctIndex ? 'correct' : 'wrong';
 
   return (
-    <Screen maxWidth={560}>
+    <Screen maxWidth={wide ? 820 : 560}>
       <GameHeader
         playerName={player.name}
         categoryName={categoryTitle(category, language)}
@@ -162,16 +164,18 @@ export function GameScreen({ player, category }: GameScreenProps) {
           <QuestionCard text={question.question[language]} settled={locked} />
           {locked && outcome === 'correct' && <ParticleBurst />}
         </View>
-        <View style={styles.answers}>
+        <View style={[styles.answers, wide && styles.answerGrid]}>
           {answers.map((label, i) => (
-            <AnswerButton
-              key={i}
-              index={i}
-              label={label}
-              state={answerStateFor(i, state)}
-              disabled={locked}
-              onPress={handleAnswer}
-            />
+            <View key={i} style={wide && styles.answerCell}>
+              <AnswerButton
+                index={i}
+                label={label}
+                state={answerStateFor(i, state)}
+                disabled={locked}
+                onPress={handleAnswer}
+                fill={wide}
+              />
+            </View>
           ))}
         </View>
       </QuestionStage>
@@ -194,5 +198,8 @@ const makeStyles = (c: ColorTokens) =>
     centered: { flexGrow: 1, justifyContent: 'center' },
     hud: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
     answers: { gap: spacing.md },
+    answerGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+    // Two per row: half the width minus half the gap.
+    answerCell: { width: '48.8%', flexGrow: 1 },
     empty: { color: c.textMuted, fontSize: fontSize.label, fontFamily: fonts.semibold, textAlign: 'center' },
   });

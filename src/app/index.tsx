@@ -62,7 +62,7 @@ export default function HomeScreen() {
           <MaterialCommunityIcons name={isRTL ? 'chevron-left' : 'chevron-right'} size={24} color={c.textMuted} />
         </Pressable>
 
-        <NeonButton label={t.play} icon="play" onPress={play} />
+        <NeonButton label={t.play} icon="play" onPress={play} pulse />
         <NeonButton label={t.leaderboard} icon="podium" variant="ghost" onPress={() => router.push('/leaderboard')} />
       </Animated.View>
     </Screen>
@@ -106,6 +106,6 @@ const makeStyles = (c: ColorTokens) =>
       backgroundColor: c.primary,
     },
     flex: { flex: 1 },
-    playerName: { color: c.text, fontSize: fontSize.label, fontFamily: fonts.extrabold, lineHeight: 26 },
+    playerName: { color: c.text, fontSize: fontSize.label, fontFamily: fonts.extrabold },
     switchText: { color: c.textMuted, fontSize: fontSize.caption + 1, fontFamily: fonts.semibold },
   });

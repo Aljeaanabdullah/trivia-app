@@ -24,6 +24,8 @@ interface AnswerButtonProps {
   state: AnswerState;
   disabled: boolean;
   onPress: (index: number) => void;
+  /** Stretch to fill a grid cell (wide layouts). */
+  fill?: boolean;
 }
 
 const LETTERS = { en: ['A', 'B', 'C', 'D'], ar: ['أ', 'ب', 'ج', 'د'] } as const;
@@ -43,7 +45,7 @@ function paletteFor(state: AnswerState, c: ColorTokens) {
   }
 }
 
-export function AnswerButton({ index, label, state, disabled, onPress }: AnswerButtonProps) {
+export function AnswerButton({ index, label, state, disabled, onPress, fill }: AnswerButtonProps) {
   const { colors: c } = useTheme();
   const { t, language, textStart } = useI18n();
   const styles = useThemedStyles(makeStyles);
@@ -78,8 +80,11 @@ export function AnswerButton({ index, label, state, disabled, onPress }: AnswerB
 
   return (
     // Layout animation on the wrapper so it never fights the shake/scale transform.
-    <Animated.View entering={reduceMotion ? undefined : FadeInDown.delay(140 + index * 70).duration(380)}>
-      <Animated.View style={animatedStyle}>
+    <Animated.View
+      entering={reduceMotion ? undefined : FadeInDown.delay(140 + index * 70).duration(380)}
+      style={fill && styles.fill}
+    >
+      <Animated.View style={[animatedStyle, fill && styles.fill]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={t.answerOption(letter, label)}
@@ -88,7 +93,11 @@ export function AnswerButton({ index, label, state, disabled, onPress }: AnswerB
           onPress={() => onPress(index)}
           onPressIn={() => scale.set(withSpring(0.96, pressSpring))}
           onPressOut={() => scale.set(withSpring(1, pressSpring))}
-          style={[styles.button, { borderColor: colors.border, backgroundColor: colors.bg, boxShadow: colors.shadow }]}
+          style={[
+            styles.button,
+            fill && styles.fill,
+            { borderColor: colors.border, backgroundColor: colors.bg, boxShadow: colors.shadow },
+          ]}
         >
           <View style={[styles.badge, { backgroundColor: colors.badge }]}>
             <Text style={[styles.badgeText, { color: colors.badgeText }]} maxFontSizeMultiplier={1.2}>
@@ -123,5 +132,6 @@ const makeStyles = (c: ColorTokens) =>
     badgeText: { fontFamily: fonts.black, fontSize: fontSize.body, lineHeight: 24 },
     label: { flex: 1, color: c.text, fontSize: fontSize.label, lineHeight: 26, fontFamily: fonts.bold },
     dimmedLabel: { color: c.textMuted },
+    fill: { flexGrow: 1 },
     mark: { fontSize: 20, fontFamily: fonts.black, paddingHorizontal: spacing.xs },
   });
