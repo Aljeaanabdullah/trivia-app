@@ -1,0 +1,23 @@
+/** English UI strings. Phase 3 adds Arabic with the same keys and a language switcher. */
+export const en = {
+  appName: 'BrainByte',
+  tagline: 'Offline trivia. Futuristic vibes.',
+  startDemo: 'Start Demo Round',
+  guestPlayer: 'Guest',
+  questionOf: (current: number, total: number) => `Question ${current} / ${total}`,
+  score: 'Score',
+  correct: 'Correct! +1',
+  wrong: 'Not quite',
+  timeUp: "Time's up!",
+  correctAnswerWas: (answer: string) => `Correct answer: ${answer}`,
+  nextQuestion: 'Next Question',
+  seeResults: 'See Results',
+  roundComplete: 'Round Complete',
+  correctCount: (n: number) => `${n} correct`,
+  wrongCount: (n: number) => `${n} wrong or unanswered`,
+  playAgain: 'Play Again',
+  home: 'Home',
+  quit: 'Quit game',
+  secondsLeft: (n: number) => `${n} seconds left`,
+  noQuestions: 'No questions are available for this category yet.',
+};
