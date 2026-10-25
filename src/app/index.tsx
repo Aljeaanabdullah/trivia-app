@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const { activePlayer } = usePlayers();
 
   const play = () => {
-    if (activePlayer) router.push('/game');
+    if (activePlayer) router.push('/categories');
     else router.push({ pathname: '/player', params: { next: 'play' } });
   };
 

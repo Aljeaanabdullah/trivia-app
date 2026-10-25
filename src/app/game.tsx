@@ -1,11 +1,15 @@
-import { Redirect } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
+import { getCategory } from '@/data/categories';
 import { GameScreen } from '@/features/game/GameScreen';
 import { usePlayers } from '@/state/PlayerProvider';
 
 export default function GameRoute() {
+  const { category } = useLocalSearchParams<{ category?: string }>();
   const { activePlayer } = usePlayers();
-  // Every game belongs to a player; send newcomers to the name screen first.
+  const selected = getCategory(category);
+  // Every game belongs to a player and a valid category.
   if (!activePlayer) return <Redirect href={{ pathname: '/player', params: { next: 'play' } }} />;
-  return <GameScreen playerName={activePlayer.name} />;
+  if (!selected) return <Redirect href="/categories" />;
+  return <GameScreen key={selected.id} player={activePlayer} category={selected} />;
 }

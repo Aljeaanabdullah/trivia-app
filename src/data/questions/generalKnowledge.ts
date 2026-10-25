@@ -155,4 +155,98 @@ export const generalKnowledgeQuestions: Question[] = [
       ar: '7 أيام × 24 ساعة = 168 ساعة.',
     },
   },
+  {
+    id: 'gk-011',
+    categoryId: 'general-knowledge',
+    question: {
+      en: 'How many months of the year have 31 days?',
+      ar: 'كم شهرًا في السنة يتكون من 31 يومًا؟',
+    },
+    answers: {
+      en: ['5', '6', '7', '8'],
+      ar: ['5', '6', '7', '8'],
+    },
+    correctIndex: 2,
+    explanation: {
+      en: 'January, March, May, July, August, October and December each have 31 days.',
+      ar: 'يناير ومارس ومايو ويوليو وأغسطس وأكتوبر وديسمبر كلها من 31 يومًا.',
+    },
+  },
+  {
+    id: 'gk-012',
+    categoryId: 'general-knowledge',
+    question: {
+      en: 'How many centimetres are there in one metre?',
+      ar: 'كم سنتيمترًا في المتر الواحد؟',
+    },
+    answers: {
+      en: ['100', '10', '1,000', '60'],
+      ar: ['100', '10', '1,000', '60'],
+    },
+    correctIndex: 0,
+  },
+  {
+    id: 'gk-013',
+    categoryId: 'general-knowledge',
+    question: {
+      en: 'What colour is the circle in the middle of Japan’s flag?',
+      ar: 'ما لون الدائرة في وسط علم اليابان؟',
+    },
+    answers: {
+      en: ['Yellow', 'Blue', 'Black', 'Red'],
+      ar: ['أصفر', 'أزرق', 'أسود', 'أحمر'],
+    },
+    correctIndex: 3,
+    explanation: {
+      en: 'The red disc on a white background represents the sun.',
+      ar: 'يرمز القرص الأحمر على الخلفية البيضاء إلى الشمس.',
+    },
+  },
+  {
+    id: 'gk-014',
+    categoryId: 'general-knowledge',
+    question: {
+      en: 'How many letters are in the Arabic alphabet?',
+      ar: 'كم عدد حروف الأبجدية العربية؟',
+    },
+    answers: {
+      en: ['24', '28', '26', '32'],
+      ar: ['24', '28', '26', '32'],
+    },
+    correctIndex: 1,
+  },
+  {
+    id: 'gk-015',
+    categoryId: 'general-knowledge',
+    question: {
+      en: 'In which direction does the Sun rise?',
+      ar: 'من أي اتجاه تشرق الشمس؟',
+    },
+    answers: {
+      en: ['West', 'North', 'East', 'South'],
+      ar: ['الغرب', 'الشمال', 'الشرق', 'الجنوب'],
+    },
+    correctIndex: 2,
+    explanation: {
+      en: 'Earth spins from west to east, so the Sun appears to rise in the east.',
+      ar: 'تدور الأرض من الغرب إلى الشرق، لذلك تبدو الشمس وكأنها تشرق من الشرق.',
+    },
+  },
+  {
+    id: 'gk-016',
+    categoryId: 'general-knowledge',
+    question: {
+      en: 'How many zeros are in the number one million?',
+      ar: 'كم صفرًا في العدد مليون؟',
+    },
+    answers: {
+      en: ['5', '6', '7', '9'],
+      ar: ['5', '6', '7', '9'],
+    },
+    correctIndex: 1,
+    explanation: {
+      en: 'One million is written as 1,000,000.',
+      ar: 'يُكتب المليون هكذا: 1,000,000.',
+    },
+  },
 ];

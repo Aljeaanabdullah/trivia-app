@@ -15,21 +15,18 @@ import { RoundSummary } from '@/components/RoundSummary';
 import { Screen } from '@/components/Screen';
 import { goBackOrHome } from '@/components/ScreenHeader';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
+import { categoryTitle, type Category } from '@/data/categories';
 import { getQuestionsForCategory } from '@/data/questions';
 import { useI18n, useThemedStyles } from '@/state/SettingsProvider';
 import { fontSize, spacing, type ColorTokens } from '@/theme/tokens';
 import { fonts } from '@/theme/typography';
-import type { CategoryId, LocalizedText } from '@/types/trivia';
+import type { CategoryId, Player } from '@/types/trivia';
 import { GAME_CONFIG } from './config';
 import { createGameState, gameReducer, type GameState } from './gameReducer';
 import { selectQuestions } from './selectQuestions';
 
-// Category becomes a real input in Phase 5.
-const CATEGORY: CategoryId = 'general-knowledge';
-const CATEGORY_NAME: LocalizedText = { en: 'General Knowledge', ar: 'معلومات عامة' };
-
-function newRound(recentIds: readonly string[] = []) {
-  return selectQuestions(getQuestionsForCategory(CATEGORY), GAME_CONFIG.questionsPerGame, { recentIds });
+function newRound(categoryId: CategoryId, recentIds: readonly string[] = []) {
+  return selectQuestions(getQuestionsForCategory(categoryId), GAME_CONFIG.questionsPerGame, { recentIds });
 }
 
 function answerStateFor(i: number, state: GameState): AnswerState {
@@ -40,10 +37,10 @@ function answerStateFor(i: number, state: GameState): AnswerState {
   return 'dimmed';
 }
 
-export function GameScreen({ playerName }: { playerName: string }) {
+export function GameScreen({ player, category }: { player: Player; category: Category }) {
   const { t, language } = useI18n();
   const styles = useThemedStyles(makeStyles);
-  const [state, dispatch] = useReducer(gameReducer, undefined, () => createGameState(newRound()));
+  const [state, dispatch] = useReducer(gameReducer, undefined, () => createGameState(newRound(category.id)));
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
   // Index of the question currently playing its exit animation, if any.
   const [leavingIndex, setLeavingIndex] = useState<number | null>(null);
@@ -95,8 +92,8 @@ export function GameScreen({ playerName }: { playerName: string }) {
 
   const handlePlayAgain = useCallback(() => {
     setLeavingIndex(null);
-    dispatch({ type: 'reset', questions: newRound(state.questions.map((q) => q.id)) });
-  }, [state.questions]);
+    dispatch({ type: 'reset', questions: newRound(category.id, state.questions.map((q) => q.id)) });
+  }, [category.id, state.questions]);
 
   if (state.phase === 'finished' || !question) {
     return (
@@ -118,8 +115,8 @@ export function GameScreen({ playerName }: { playerName: string }) {
   return (
     <Screen maxWidth={560}>
       <GameHeader
-        playerName={playerName}
-        categoryName={CATEGORY_NAME[language]}
+        playerName={player.name}
+        categoryName={categoryTitle(category, language)}
         questionNumber={state.index + 1}
         totalQuestions={total}
         onQuit={goBackOrHome}

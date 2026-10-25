@@ -19,7 +19,7 @@ import type { Player } from '@/types/trivia';
 
 /** Where to go after a player is chosen: `next=play` continues into a game. */
 function proceed(next: string | undefined) {
-  if (next === 'play') router.replace('/game');
+  if (next === 'play') router.replace('/categories');
   else goBackOrHome();
 }
 
