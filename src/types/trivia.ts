@@ -49,6 +49,13 @@ export interface PreparedQuestion extends Omit<Question, 'correctIndex'> {
   correctIndex: number;
 }
 
+/** A locally stored player profile. No accounts, no network. */
+export interface Player {
+  id: string;
+  name: string;
+  createdAt: number;
+}
+
 export interface AnswerRecord {
   questionId: string;
   /** null when the timer ran out. */

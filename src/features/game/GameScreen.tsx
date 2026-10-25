@@ -24,7 +24,7 @@ import { GAME_CONFIG } from './config';
 import { createGameState, gameReducer, type GameState } from './gameReducer';
 import { selectQuestions } from './selectQuestions';
 
-// Player and category become real inputs in Phases 4–5.
+// Category becomes a real input in Phase 5.
 const CATEGORY: CategoryId = 'general-knowledge';
 const CATEGORY_NAME: LocalizedText = { en: 'General Knowledge', ar: 'معلومات عامة' };
 
@@ -40,7 +40,7 @@ function answerStateFor(i: number, state: GameState): AnswerState {
   return 'dimmed';
 }
 
-export function GameScreen() {
+export function GameScreen({ playerName }: { playerName: string }) {
   const { t, language } = useI18n();
   const styles = useThemedStyles(makeStyles);
   const [state, dispatch] = useReducer(gameReducer, undefined, () => createGameState(newRound()));
@@ -118,7 +118,7 @@ export function GameScreen() {
   return (
     <Screen maxWidth={560}>
       <GameHeader
-        playerName="—"
+        playerName={playerName}
         categoryName={CATEGORY_NAME[language]}
         questionNumber={state.index + 1}
         totalQuestions={total}
