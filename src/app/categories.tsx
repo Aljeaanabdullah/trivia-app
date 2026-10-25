@@ -11,6 +11,8 @@ import { ScreenHeader } from '@/components/ScreenHeader';
 import { CATEGORIES, type Category } from '@/data/categories';
 import { QUESTION_BANK } from '@/data/questions';
 import { filterCategories } from '@/features/categories/search';
+import { personalBest } from '@/features/history/leaderboard';
+import { useHistory } from '@/state/HistoryProvider';
 import { usePlayers } from '@/state/PlayerProvider';
 import { useI18n, useThemedStyles, useTheme } from '@/state/SettingsProvider';
 import { fontSize, radius, spacing, type ColorTokens } from '@/theme/tokens';
@@ -30,6 +32,7 @@ export default function CategoriesScreen() {
   const { colors: c } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const { activePlayer } = usePlayers();
+  const { games } = useHistory();
   const { width } = useWindowDimensions();
   const [query, setQuery] = useState('');
   const columns = columnsFor(Math.min(width, MAX_WIDTH));
@@ -77,7 +80,12 @@ export default function CategoriesScreen() {
                 style={styles.cell}
                 entering={FadeInDown.delay(Math.min(r * columns + i, 12) * 35).duration(320)}
               >
-                <CategoryCard category={category} questionCount={QUESTION_BANK[category.id].length} onPress={start} />
+                <CategoryCard
+                  category={category}
+                  questionCount={QUESTION_BANK[category.id].length}
+                  best={personalBest(games, activePlayer.id, category.id)}
+                  onPress={start}
+                />
               </Animated.View>
             ))}
             {/* Keep the last row's cards the same width as the others. */}

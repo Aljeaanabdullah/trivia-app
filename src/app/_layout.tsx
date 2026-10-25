@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { HistoryProvider, useHistory } from '@/state/HistoryProvider';
 import { PlayerProvider, usePlayers } from '@/state/PlayerProvider';
 import { SettingsProvider, useSettings, useTheme } from '@/state/SettingsProvider';
 import { fontAssets } from '@/theme/typography';
@@ -16,7 +17,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <SettingsProvider>
         <PlayerProvider>
-          <AppShell />
+          <HistoryProvider>
+            <AppShell />
+          </HistoryProvider>
         </PlayerProvider>
       </SettingsProvider>
     </SafeAreaProvider>
@@ -27,7 +30,8 @@ function AppShell() {
   const [fontsLoaded, fontError] = useFonts(fontAssets);
   const { ready: settingsReady } = useSettings();
   const { ready: playersReady } = usePlayers();
-  const ready = settingsReady && playersReady;
+  const { ready: historyReady } = useHistory();
+  const ready = settingsReady && playersReady && historyReady;
   const { colors } = useTheme();
   // Fall back to system fonts rather than block the app if a font fails to load.
   const appReady = ready && (fontsLoaded || !!fontError);

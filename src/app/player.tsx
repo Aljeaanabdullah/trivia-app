@@ -11,6 +11,8 @@ import { PlayerNameInput } from '@/components/PlayerNameInput';
 import { Screen } from '@/components/Screen';
 import { goBackOrHome, ScreenHeader } from '@/components/ScreenHeader';
 import type { NameError } from '@/features/players/playerName';
+import { gamesPlayedBy } from '@/features/history/leaderboard';
+import { useHistory } from '@/state/HistoryProvider';
 import { usePlayers } from '@/state/PlayerProvider';
 import { useI18n, useThemedStyles, useTheme } from '@/state/SettingsProvider';
 import { fontSize, glow, radius, spacing, type ColorTokens } from '@/theme/tokens';
@@ -91,6 +93,7 @@ function PlayerRow({ player, active, onChoose }: { player: Player; active: boole
   const { colors: c } = useTheme();
   const styles = useThemedStyles(makeStyles);
   const { renamePlayer } = usePlayers();
+  const { games } = useHistory();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(player.name);
   const [error, setError] = useState<NameError | null>(null);
@@ -154,7 +157,10 @@ function PlayerRow({ player, active, onChoose }: { player: Player; active: boole
           <Text style={[styles.name, { textAlign: textStart }]} numberOfLines={1}>
             {player.name}
           </Text>
-          {active && <Text style={[styles.activeLabel, { textAlign: textStart }]}>{t.active}</Text>}
+          <Text style={[styles.activeLabel, { textAlign: textStart }, !active && styles.mutedLabel]}>
+            {active ? `${t.active} · ` : ''}
+            {t.gamesPlayed(gamesPlayedBy(games, player.id))}
+          </Text>
         </View>
         {active && <MaterialCommunityIcons name="check-circle" size={22} color={c.gold} />}
       </Pressable>
@@ -208,5 +214,6 @@ const makeStyles = (c: ColorTokens) =>
     avatarText: { color: c.onPrimary, fontSize: fontSize.label, fontFamily: fonts.black, lineHeight: 26 },
     name: { color: c.text, fontSize: fontSize.label, fontFamily: fonts.bold, lineHeight: 26 },
     activeLabel: { color: c.gold, fontSize: fontSize.caption, fontFamily: fonts.bold },
+    mutedLabel: { color: c.textMuted },
     flex: { flex: 1 },
   });

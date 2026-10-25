@@ -63,6 +63,7 @@ export default function HomeScreen() {
         </Pressable>
 
         <NeonButton label={t.play} icon="play" onPress={play} />
+        <NeonButton label={t.leaderboard} icon="podium" variant="ghost" onPress={() => router.push('/leaderboard')} />
       </Animated.View>
     </Screen>
   );

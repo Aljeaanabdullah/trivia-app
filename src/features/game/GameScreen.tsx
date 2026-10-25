@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { AppState, StyleSheet, Text, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
@@ -11,23 +12,21 @@ import { ParticleBurst } from '@/components/ParticleBurst';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { QuestionCard } from '@/components/QuestionCard';
 import { QuestionStage, STAGE_EXIT_MS } from '@/components/QuestionStage';
-import { RoundSummary } from '@/components/RoundSummary';
 import { Screen } from '@/components/Screen';
 import { goBackOrHome } from '@/components/ScreenHeader';
 import { ScoreDisplay } from '@/components/ScoreDisplay';
 import { categoryTitle, type Category } from '@/data/categories';
 import { getQuestionsForCategory } from '@/data/questions';
+import { recentQuestionIds } from '@/features/history/leaderboard';
+import { useHistory } from '@/state/HistoryProvider';
 import { useI18n, useThemedStyles } from '@/state/SettingsProvider';
 import { fontSize, spacing, type ColorTokens } from '@/theme/tokens';
 import { fonts } from '@/theme/typography';
-import type { CategoryId, Player } from '@/types/trivia';
+import type { GameRecord, Player } from '@/types/trivia';
+import { createId } from '@/utils/id';
 import { GAME_CONFIG } from './config';
 import { createGameState, gameReducer, type GameState } from './gameReducer';
 import { selectQuestions } from './selectQuestions';
-
-function newRound(categoryId: CategoryId, recentIds: readonly string[] = []) {
-  return selectQuestions(getQuestionsForCategory(categoryId), GAME_CONFIG.questionsPerGame, { recentIds });
-}
 
 function answerStateFor(i: number, state: GameState): AnswerState {
   if (state.phase === 'answering') return 'idle';
@@ -37,18 +36,33 @@ function answerStateFor(i: number, state: GameState): AnswerState {
   return 'dimmed';
 }
 
-export function GameScreen({ player, category }: { player: Player; category: Category }) {
+interface GameScreenProps {
+  player: Player;
+  category: Category;
+}
+
+export function GameScreen({ player, category }: GameScreenProps) {
   const { t, language } = useI18n();
   const styles = useThemedStyles(makeStyles);
-  const [state, dispatch] = useReducer(gameReducer, undefined, () => createGameState(newRound(category.id)));
+  const { games, saveGame } = useHistory();
+  // One id per round: saving is idempotent, so the score can never be stored twice.
+  const [gameId] = useState(() => createId('g'));
+  const [state, dispatch] = useReducer(gameReducer, undefined, () =>
+    createGameState(
+      selectQuestions(getQuestionsForCategory(category.id), GAME_CONFIG.questionsPerGame, {
+        recentIds: recentQuestionIds(games, player.id, category.id),
+      }),
+    ),
+  );
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
   // Index of the question currently playing its exit animation, if any.
   const [leavingIndex, setLeavingIndex] = useState<number | null>(null);
   const reduceMotion = useReducedMotion();
   const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const finished = useRef(false);
   const leaving = leavingIndex === state.index;
 
-  // Pause the countdown while the app is backgrounded.
+  // Pause the countdown while the app is backgrounded or the screen is locked.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => setAppActive(s === 'active'));
     return () => sub.remove();
@@ -63,6 +77,7 @@ export function GameScreen({ player, category }: { player: Player; category: Cat
 
   const question = state.questions[state.index];
   const total = state.questions.length;
+  const isLast = state.index === total - 1;
 
   const handleAnswer = useCallback(
     (choiceIndex: number) => {
@@ -80,29 +95,38 @@ export function GameScreen({ player, category }: { player: Player; category: Cat
     dispatch({ type: 'timeout', questionIndex: state.index });
   }, [state.index]);
 
+  const finishGame = useCallback(() => {
+    if (finished.current) return;
+    finished.current = true;
+    const record: GameRecord = {
+      id: gameId,
+      playerId: player.id,
+      playerName: player.name,
+      categoryId: category.id,
+      score: state.score,
+      total,
+      questionIds: state.questions.map((q) => q.id),
+      completedAt: Date.now(),
+    };
+    saveGame(record);
+    router.replace({ pathname: '/results', params: { gameId } });
+  }, [gameId, player, category.id, state.score, state.questions, total, saveGame]);
+
   const handleNext = useCallback(() => {
-    if (leaving) return;
+    if (leaving || state.phase !== 'feedback') return;
+    const advance = isLast ? finishGame : () => dispatch({ type: 'next' });
     if (reduceMotion) {
-      dispatch({ type: 'next' });
+      advance();
       return;
     }
     setLeavingIndex(state.index);
-    exitTimer.current = setTimeout(() => dispatch({ type: 'next' }), STAGE_EXIT_MS);
-  }, [leaving, reduceMotion, state.index]);
+    exitTimer.current = setTimeout(advance, STAGE_EXIT_MS);
+  }, [leaving, state.phase, state.index, isLast, finishGame, reduceMotion]);
 
-  const handlePlayAgain = useCallback(() => {
-    setLeavingIndex(null);
-    dispatch({ type: 'reset', questions: newRound(category.id, state.questions.map((q) => q.id)) });
-  }, [category.id, state.questions]);
-
-  if (state.phase === 'finished' || !question) {
+  if (!question) {
     return (
       <Screen contentStyle={styles.centered}>
-        {total === 0 ? (
-          <Text style={styles.empty}>{t.noQuestions}</Text>
-        ) : (
-          <RoundSummary score={state.score} total={total} onPlayAgain={handlePlayAgain} onHome={goBackOrHome} />
-        )}
+        <Text style={styles.empty}>{t.noQuestions}</Text>
       </Screen>
     );
   }
@@ -157,7 +181,7 @@ export function GameScreen({ player, category }: { player: Player; category: Cat
           outcome={outcome}
           correctAnswer={answers[question.correctIndex]}
           explanation={question.explanation?.[language]}
-          isLastQuestion={state.index === total - 1}
+          isLastQuestion={isLast}
           onNext={handleNext}
         />
       )}

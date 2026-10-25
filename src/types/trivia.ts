@@ -56,6 +56,19 @@ export interface Player {
   createdAt: number;
 }
 
+/** One completed game, saved locally. `id` makes saving idempotent. */
+export interface GameRecord {
+  id: string;
+  playerId: string;
+  /** Display name at the time of the game (players can be renamed later). */
+  playerName: string;
+  categoryId: CategoryId;
+  score: number;
+  total: number;
+  questionIds: string[];
+  completedAt: number;
+}
+
 export interface AnswerRecord {
   questionId: string;
   /** null when the timer ran out. */
