@@ -85,7 +85,8 @@ export function useSettings() {
 
 // When the OS itself runs RTL, React Native swaps 'left'/'right'. Our layout
 // direction is controlled per screen instead, so undo that swap for text.
-const nativeSwapsLeftRight = I18nManager.isRTL && I18nManager.doLeftAndRightSwapInRTL;
+// Boolean(): react-native-web leaves these undefined, which must count as "no swap".
+const nativeSwapsLeftRight = Boolean(I18nManager.isRTL && I18nManager.doLeftAndRightSwapInRTL);
 
 export function useI18n() {
   const { language } = useSettings();

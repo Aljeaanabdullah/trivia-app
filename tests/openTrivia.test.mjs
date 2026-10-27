@@ -148,9 +148,9 @@ test('not enough medium questions (code 1): retries the same category at any dif
   assert.ok(urls[1].includes('category=22'));
 });
 
-test('empty results everywhere (code 1 twice) is reported as noResults', async () => {
+test('empty results everywhere (code 1 twice) is reported as empty', async () => {
   const h = harness([{ response_code: 1 }, { response_code: 1 }]);
-  await assert.rejects(h.client.fetchQuestions(target), (e) => e.kind === 'noResults');
+  await assert.rejects(h.client.fetchQuestions(target), (e) => e.kind === 'empty');
 });
 
 test('token exhausted (code 4): retries once without the token', async () => {
@@ -166,7 +166,12 @@ test('network failure surfaces as a network error (no silent fallback)', async (
   await assert.rejects(h.client.fetchQuestions(target), (e) => e instanceof otdb.LiveQuestionsError && e.kind === 'network');
 });
 
-test('too few usable questions is an error, not a short round', async () => {
+test('too few usable questions is reported as empty, never a short round', async () => {
   const h = harness([ok(3)]);
-  await assert.rejects(h.client.fetchQuestions(target), (e) => e.kind === 'server');
+  await assert.rejects(h.client.fetchQuestions(target), (e) => e.kind === 'empty');
+});
+
+test('code 0 with zero results is reported as empty', async () => {
+  const h = harness([{ response_code: 0, results: [] }]);
+  await assert.rejects(h.client.fetchQuestions(target), (e) => e.kind === 'empty');
 });

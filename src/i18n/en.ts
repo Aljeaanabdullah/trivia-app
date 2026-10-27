@@ -61,17 +61,20 @@ export const en = {
   answerOption: (letter: string, label: string) => `Option ${letter}: ${label}`,
 
   // Live questions (Open Trivia DB, English mode)
-  loadingLive: 'Loading live questions…',
+  loadingLive: 'Loading your questions…',
+  loadingLiveHint: 'Fetching 5 fresh questions for this category.',
   liveAttribution: 'Questions from Open Trivia DB (CC BY-SA 4.0)',
-  liveErrorTitle: 'Couldn’t load questions',
+  liveErrorTitle: 'Something went wrong',
   liveErrors: {
-    network: 'No internet connection. Check your connection and try again.',
+    network: 'No internet connection. Please try again.',
     timeout: 'The trivia server took too long to respond. Please try again.',
     rateLimit: 'The trivia server is busy right now. Wait a few seconds, then try again.',
-    noResults: 'Open Trivia DB has no more questions for this category right now. Try again or choose another category.',
     server: 'The trivia server sent an unexpected response. Please try again.',
   },
   tryAgain: 'Try Again',
+  emptyTitle: 'No questions found for this category.',
+  emptyHint: 'Open Trivia DB didn’t return enough questions this time. Try again or pick a different category.',
+  chooseAnotherCategory: 'Choose Another Category',
 
   // Results
   resultsTitle: 'Round Complete',

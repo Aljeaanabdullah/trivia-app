@@ -15,7 +15,8 @@ export const RATE_LIMIT_MS = 5000;
 export const MAX_ATTEMPTS = 3;
 export const REQUEST_TIMEOUT_MS = 10000;
 
-export type LiveErrorKind = 'network' | 'timeout' | 'rateLimit' | 'noResults' | 'server';
+/** 'empty' = the API had no (or too few) questions after the permitted retries. */
+export type LiveErrorKind = 'network' | 'timeout' | 'rateLimit' | 'empty' | 'server';
 
 export class LiveQuestionsError extends Error {
   readonly kind: LiveErrorKind;
@@ -189,14 +190,17 @@ export function parseQuestions(response: OpenTdbResponse, categoryId: CategoryId
   return out;
 }
 
-interface ClientDeps {
+export interface ClientDeps {
   fetch: (url: string, init?: { signal?: AbortSignal }) => Promise<{ ok: boolean; status: number; json: () => Promise<unknown> }>;
   sleep: (ms: number) => Promise<void>;
   now: () => number;
 }
 
+/** The platform fetch; exported so dev-only simulations can wrap the real network. */
+export const networkFetch: ClientDeps['fetch'] = (url, init) => globalThis.fetch(url, init);
+
 const defaultDeps: ClientDeps = {
-  fetch: (url, init) => globalThis.fetch(url, init),
+  fetch: networkFetch,
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   now: () => Date.now(),
 };
@@ -274,7 +278,8 @@ export function createOpenTriviaClient(overrides: Partial<ClientDeps> = {}) {
         case 0: {
           const questions = parseQuestions(data, categoryId);
           if (questions.length < LIVE_QUESTION_COUNT) {
-            throw new LiveQuestionsError('server', `Only ${questions.length} usable questions returned`);
+            // Never start an incomplete game.
+            throw new LiveQuestionsError('empty', `Only ${questions.length} usable questions returned`);
           }
           return questions.slice(0, LIVE_QUESTION_COUNT);
         }
@@ -284,7 +289,7 @@ export function createOpenTriviaClient(overrides: Partial<ClientDeps> = {}) {
           if (rateLimited >= MAX_ATTEMPTS) throw new LiveQuestionsError('rateLimit', 'Rate limited by Open Trivia DB');
           continue;
         case 4: // Token exhausted for this category: ask again without it (repeats become possible).
-          if (!useToken) throw new LiveQuestionsError('noResults', 'Token empty');
+          if (!useToken) throw new LiveQuestionsError('empty', 'Token empty');
           useToken = false;
           continue;
         case 3: // Token expired (6 h of inactivity): get a fresh one once.
@@ -296,7 +301,7 @@ export function createOpenTriviaClient(overrides: Partial<ClientDeps> = {}) {
             difficulty = null;
             continue;
           }
-          throw new LiveQuestionsError('noResults', 'No results');
+          throw new LiveQuestionsError('empty', 'No results');
         default:
           throw new LiveQuestionsError('server', `Unexpected response code ${String(data?.response_code)}`);
       }

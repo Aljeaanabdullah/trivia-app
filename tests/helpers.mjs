@@ -1,10 +1,25 @@
 // Test helpers: Node 24 runs the app's TypeScript modules directly (type stripping).
-// Only modules whose runtime imports are relative-with-extension or type-only can be loaded.
-import { readdirSync } from 'node:fs';
+// Modules that import React Native can't load here; pure logic modules can.
+import { existsSync, readdirSync, statSync } from 'node:fs';
+import { registerHooks } from 'node:module';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+// Resolve the app's `@/…` alias and extension-less `.ts` imports, like Metro does.
+registerHooks({
+  resolve(specifier, context, nextResolve) {
+    let target = specifier;
+    if (specifier.startsWith('@/')) target = pathToFileURL(path.join(ROOT, 'src', specifier.slice(2))).href;
+    else if (!specifier.startsWith('.') || !context.parentURL?.startsWith('file:')) return nextResolve(specifier, context);
+    const base = target.startsWith('file:') ? fileURLToPath(target) : fileURLToPath(new URL(target, context.parentURL));
+    for (const candidate of [base, `${base}.ts`, `${base}.tsx`, path.join(base, 'index.ts')]) {
+      if (existsSync(candidate) && statSync(candidate).isFile()) return nextResolve(pathToFileURL(candidate).href, context);
+    }
+    return nextResolve(specifier, context);
+  },
+});
 export const src = (rel) => import(pathToFileURL(path.join(ROOT, 'src', rel)).href);
 
 /** Loads every category question file in src/data/questions (index.ts excluded). */
