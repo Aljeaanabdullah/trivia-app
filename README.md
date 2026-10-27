@@ -1,11 +1,13 @@
 # BrainByte
 
-A premium, futuristic **offline** trivia game for Android and iOS, built with React Native + Expo (SDK 58, Expo Router).
+A premium, futuristic trivia game for Android and iOS, built with React Native + Expo (SDK 58, Expo Router).
 
 - Arabic (RTL) and English (LTR), switchable instantly
 - Dark (navy / electric-blue neon) and Light (pearl / blue & gold) themes
 - Local player profiles: no accounts, no network
 - 24 categories, 384 bilingual questions (16 per category), all bundled in the app
+- **English mode:** 5 live medium questions per game from [Open Trivia DB](https://opentdb.com) (CC BY-SA 4.0)
+- **Arabic mode:** the built-in bilingual bank (Open Trivia DB is English-only)
 - 5-question rounds with a 20-second timer, animated feedback, haptics, and a results screen
 - Local game history and a leaderboard per player and category
 - Runs in **Expo Go**; no development build required
@@ -53,3 +55,17 @@ tests/              node:test suites (run TypeScript sources directly on Node 24
 Add entries to the category file in `src/data/questions/` (ids like `geo-017`, four answers per
 language in the same order, `correctIndex` 0–3). `npm test` validates structure, counts,
 duplicates and EN/AR alignment.
+
+## Live questions (English mode)
+
+Each English game requests:
+
+```
+https://opentdb.com/api.php?amount=5&type=multiple&category=<9-32>&difficulty=medium&token=<session token>
+```
+
+`src/services/openTrivia.ts` decodes HTML entities, reuses a session token to avoid repeats,
+keeps requests at least 5 seconds apart and retries rate limits (up to 3 attempts). If a
+category runs out of medium questions it retries the same category at any difficulty. Errors
+show a message with **Try Again**; the game never silently switches to offline questions.
+

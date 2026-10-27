@@ -63,6 +63,19 @@ export const ar: Translation = {
   noQuestions: 'لا توجد أسئلة متاحة لهذه الفئة بعد.',
   answerOption: (letter: string, label: string) => `الخيار ${letter}: ${label}`,
 
+  // Live questions (Open Trivia DB, English mode)
+  loadingLive: 'جارٍ تحميل الأسئلة المباشرة…',
+  liveAttribution: 'الأسئلة من Open Trivia DB (رخصة CC BY-SA 4.0)',
+  liveErrorTitle: 'تعذّر تحميل الأسئلة',
+  liveErrors: {
+    network: 'لا يوجد اتصال بالإنترنت. تحقّق من الاتصال ثم حاول مجددًا.',
+    timeout: 'استغرق خادم الأسئلة وقتًا طويلًا للرد. حاول مجددًا.',
+    rateLimit: 'خادم الأسئلة مشغول الآن. انتظر بضع ثوانٍ ثم حاول مجددًا.',
+    noResults: 'لا تتوفر أسئلة أخرى لهذه الفئة حاليًا. حاول مجددًا أو اختر فئة أخرى.',
+    server: 'أرسل خادم الأسئلة ردًا غير متوقع. حاول مجددًا.',
+  },
+  tryAgain: 'حاول مجددًا',
+
   // Results
   resultsTitle: 'انتهت الجولة',
   outOf: (score: number, total: number) => `${score} من ${total}`,

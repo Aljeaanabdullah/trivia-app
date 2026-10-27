@@ -22,7 +22,7 @@ import { useHistory } from '@/state/HistoryProvider';
 import { useI18n, useThemedStyles } from '@/state/SettingsProvider';
 import { fontSize, spacing, type ColorTokens } from '@/theme/tokens';
 import { fonts } from '@/theme/typography';
-import type { GameRecord, Player } from '@/types/trivia';
+import type { GameRecord, Player, PreparedQuestion } from '@/types/trivia';
 import { createId } from '@/utils/id';
 import { GAME_CONFIG } from './config';
 import { createGameState, gameReducer, type GameState } from './gameReducer';
@@ -39,9 +39,11 @@ function answerStateFor(i: number, state: GameState): AnswerState {
 interface GameScreenProps {
   player: Player;
   category: Category;
+  /** Pre-fetched round (live English questions). Omitted: pick from the built-in bank. */
+  initialQuestions?: PreparedQuestion[];
 }
 
-export function GameScreen({ player, category }: GameScreenProps) {
+export function GameScreen({ player, category, initialQuestions }: GameScreenProps) {
   const { t, language } = useI18n();
   const styles = useThemedStyles(makeStyles);
   const { games, saveGame } = useHistory();
@@ -49,9 +51,10 @@ export function GameScreen({ player, category }: GameScreenProps) {
   const [gameId] = useState(() => createId('g'));
   const [state, dispatch] = useReducer(gameReducer, undefined, () =>
     createGameState(
-      selectQuestions(getQuestionsForCategory(category.id), GAME_CONFIG.questionsPerGame, {
-        recentIds: recentQuestionIds(games, player.id, category.id),
-      }),
+      initialQuestions ??
+        selectQuestions(getQuestionsForCategory(category.id), GAME_CONFIG.questionsPerGame, {
+          recentIds: recentQuestionIds(games, player.id, category.id),
+        }),
     ),
   );
   const [appActive, setAppActive] = useState(AppState.currentState === 'active');
