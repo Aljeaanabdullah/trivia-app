@@ -42,6 +42,9 @@ export interface Question {
   /** Index (0-3) of the correct choice in `answers`. */
   correctIndex: 0 | 1 | 2 | 3;
   explanation?: LocalizedText;
+  /** 'opentdb' for live English questions; omitted for the built-in bank. */
+  source?: 'local' | 'opentdb';
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 /** A question prepared for one game: answers shuffled, correct index remapped. */

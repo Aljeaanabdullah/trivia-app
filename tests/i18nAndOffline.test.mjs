@@ -47,12 +47,23 @@ function sourceFiles(dir) {
   });
 }
 
-test('app source makes no network calls (fully offline)', () => {
+// The only network access allowed is the Open Trivia DB client (live English questions).
+const NETWORK_CLIENT = path.join('src', 'services', 'openTrivia.ts');
+
+test('network access is confined to the Open Trivia DB client', () => {
   const forbidden = [/\bfetch\s*\(/, /XMLHttpRequest/, /new WebSocket/, /https?:\/\//, /axios/];
   for (const file of sourceFiles(path.join(ROOT, 'src'))) {
+    if (path.relative(ROOT, file) === NETWORK_CLIENT) continue;
     const code = readFileSync(file, 'utf8');
     for (const re of forbidden) assert.ok(!re.test(code), `${path.relative(ROOT, file)} matches ${re}`);
   }
+});
+
+test('the network client only talks to opentdb.com over HTTPS', () => {
+  const code = readFileSync(path.join(ROOT, NETWORK_CLIENT), 'utf8');
+  const urls = code.match(/https?:\/\/[^\s'`")]+/g) ?? [];
+  assert.ok(urls.length > 0);
+  for (const url of urls) assert.match(url, /^https:\/\/opentdb\.com(\/|[,.]?$)/, url);
 });
 
 test('no network, backend or AI dependencies are installed', () => {
