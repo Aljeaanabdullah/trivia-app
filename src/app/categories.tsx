@@ -9,7 +9,7 @@ import { IconButton } from '@/components/IconButton';
 import { Screen } from '@/components/Screen';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { CATEGORIES, type Category } from '@/data/categories';
-import { QUESTION_BANK } from '@/data/questions';
+import { getQuestionsForCategory } from '@/data/questions';
 import { filterCategories } from '@/features/categories/search';
 import { personalBest } from '@/features/history/leaderboard';
 import { useHistory } from '@/state/HistoryProvider';
@@ -82,7 +82,7 @@ export default function CategoriesScreen() {
               >
                 <CategoryCard
                   category={category}
-                  questionCount={QUESTION_BANK[category.id].length}
+                  questionCount={getQuestionsForCategory(category.id).length}
                   best={personalBest(games, activePlayer.id, category.id)}
                   onPress={start}
                 />

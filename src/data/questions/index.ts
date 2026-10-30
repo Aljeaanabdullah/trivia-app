@@ -1,4 +1,4 @@
-import type { CategoryId, Question } from '@/types/trivia';
+import type { BankCategoryId, CategoryId, Question } from '@/types/trivia';
 import { animalsQuestions } from './animals';
 import { animeMangaQuestions } from './animeManga';
 import { artQuestions } from './art';
@@ -28,7 +28,7 @@ import { booksQuestions } from './books';
  * Offline question bank: bundled with the app, never fetched. Add questions
  * to a category file (or a new file registered here) without touching the UI.
  */
-export const QUESTION_BANK: Record<CategoryId, Question[]> = {
+export const QUESTION_BANK: Record<BankCategoryId, Question[]> = {
   'general-knowledge': generalKnowledgeQuestions,
   books: booksQuestions,
   film: filmQuestions,
@@ -56,5 +56,5 @@ export const QUESTION_BANK: Record<CategoryId, Question[]> = {
 };
 
 export function getQuestionsForCategory(categoryId: CategoryId): Question[] {
-  return QUESTION_BANK[categoryId] ?? [];
+  return QUESTION_BANK[categoryId as BankCategoryId] ?? [];
 }
