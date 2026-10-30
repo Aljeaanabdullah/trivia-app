@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
-import { useEffect, useReducer, useState, type ReactNode } from 'react';
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useEffect, useReducer, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { hapticError } from '@/animation/haptics';
 import { LiveStatusArt } from '@/components/LiveStatusArt';
 import { NeonButton, type IconName } from '@/components/NeonButton';
 import { Screen } from '@/components/Screen';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { StateCard } from '@/components/StateCard';
 import { categoryTitle, type Category } from '@/data/categories';
 import { LiveQuestionsError, openTrivia, type LiveErrorKind } from '@/services/openTrivia';
 import { useI18n, useThemedStyles, useTheme } from '@/state/SettingsProvider';
@@ -126,29 +126,6 @@ export function LiveGameLoader({ player, category, client = openTrivia }: LiveGa
         )}
       </View>
     </Screen>
-  );
-}
-
-/** Fades and lifts a state card in on mount (key it per state to replay). */
-function StateCard({
-  style,
-  liveRegion,
-  children,
-}: {
-  style: StyleProp<ViewStyle>;
-  liveRegion?: 'polite' | 'assertive';
-  children: ReactNode;
-}) {
-  const reduceMotion = useReducedMotion();
-  const shown = useSharedValue(reduceMotion ? 1 : 0);
-  useEffect(() => {
-    shown.set(withTiming(1, { duration: 260 }));
-  }, [shown]);
-  const animated = useAnimatedStyle(() => ({ opacity: shown.value, transform: [{ translateY: (1 - shown.value) * 12 }] }));
-  return (
-    <Animated.View style={[style, animated]} accessibilityLiveRegion={liveRegion}>
-      {children}
-    </Animated.View>
   );
 }
 

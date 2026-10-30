@@ -7,6 +7,7 @@ import { hapticTap } from '@/animation/haptics';
 import { IconButton } from '@/components/IconButton';
 import { NeonButton } from '@/components/NeonButton';
 import { Screen } from '@/components/Screen';
+import { AI_QUIZ_AVAILABLE } from '@/config/aiConfig';
 import { usePlayers } from '@/state/PlayerProvider';
 import { useI18n, useThemedStyles, useTheme } from '@/state/SettingsProvider';
 import { directionProps } from '@/theme/direction';
@@ -63,6 +64,16 @@ export default function HomeScreen() {
         </Pressable>
 
         <NeonButton label={t.play} icon="play" onPress={play} pulse />
+        {AI_QUIZ_AVAILABLE && (
+          <NeonButton
+            label={t.aiQuiz}
+            icon="robot-happy-outline"
+            variant="ghost"
+            onPress={() =>
+              activePlayer ? router.push('/ai-quiz') : router.push({ pathname: '/player', params: { next: 'play' } })
+            }
+          />
+        )}
         <NeonButton label={t.leaderboard} icon="podium" variant="ghost" onPress={() => router.push('/leaderboard')} />
       </Animated.View>
     </Screen>

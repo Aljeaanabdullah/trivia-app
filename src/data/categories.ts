@@ -64,7 +64,21 @@ export const CATEGORIES: readonly Category[] = [
   },
 ];
 
-const byId = new Map(CATEGORIES.map((c) => [c.id, c]));
+/** AI Quiz pseudo-category: not one of the 24 course categories, never shown in the grid. */
+export const AI_CATEGORY: Category = {
+  id: 'ai-quiz',
+  name: { en: 'AI Quiz', ar: 'اختبار الذكاء الاصطناعي' },
+  icon: 'robot-happy-outline',
+  color: '#B77BFF',
+  openTdbId: 0,
+};
+
+/** AI Quiz category titled with the player's topic, e.g. "AI Quiz: Volcanoes". */
+export function aiCategoryFor(topic: string): Category {
+  return { ...AI_CATEGORY, group: AI_CATEGORY.name, name: { en: topic, ar: topic } };
+}
+
+const byId = new Map<CategoryId, Category>([...CATEGORIES.map((c) => [c.id, c] as const), [AI_CATEGORY.id, AI_CATEGORY]]);
 
 export function getCategory(id: string | undefined): Category | undefined {
   return id ? byId.get(id as CategoryId) : undefined;

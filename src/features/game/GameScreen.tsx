@@ -39,11 +39,13 @@ function answerStateFor(i: number, state: GameState): AnswerState {
 interface GameScreenProps {
   player: Player;
   category: Category;
-  /** Pre-fetched round (live English questions). Omitted: pick from the built-in bank. */
+  /** Pre-fetched round (live English or AI questions). Omitted: pick from the built-in bank. */
   initialQuestions?: PreparedQuestion[];
+  /** AI Quiz topic, saved with the game so Play Again can reuse it. */
+  topic?: string;
 }
 
-export function GameScreen({ player, category, initialQuestions }: GameScreenProps) {
+export function GameScreen({ player, category, initialQuestions, topic }: GameScreenProps) {
   const { t, language } = useI18n();
   const styles = useThemedStyles(makeStyles);
   const { games, saveGame } = useHistory();
@@ -112,10 +114,11 @@ export function GameScreen({ player, category, initialQuestions }: GameScreenPro
       total,
       questionIds: state.questions.map((q) => q.id),
       completedAt: Date.now(),
+      ...(topic ? { topic } : {}),
     };
     saveGame(record);
     router.replace({ pathname: '/results', params: { gameId } });
-  }, [gameId, player, category.id, state.score, state.questions, total, saveGame]);
+  }, [gameId, player, category.id, state.score, state.questions, total, saveGame, topic]);
 
   const handleNext = useCallback(() => {
     if (leaving || state.phase !== 'feedback') return;

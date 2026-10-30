@@ -9,7 +9,7 @@ import { AnimatedTrophy } from '@/components/AnimatedTrophy';
 import { NeonButton } from '@/components/NeonButton';
 import { ParticleBurst } from '@/components/ParticleBurst';
 import { Screen } from '@/components/Screen';
-import { categoryTitle, getCategory } from '@/data/categories';
+import { aiCategoryFor, categoryTitle, getCategory } from '@/data/categories';
 import { accuracyOf, performanceFor, personalBest } from '@/features/history/leaderboard';
 import { useHistory } from '@/state/HistoryProvider';
 import { useI18n, useThemedStyles, useTheme } from '@/state/SettingsProvider';
@@ -24,7 +24,7 @@ export default function ResultsScreen() {
   const styles = useThemedStyles(makeStyles);
   const { games, getGame } = useHistory();
   const game = gameId ? getGame(gameId) : undefined;
-  const category = getCategory(game?.categoryId);
+  const category = game?.topic ? aiCategoryFor(game.topic) : getCategory(game?.categoryId);
 
   useEffect(() => {
     if (game && game.score > 0) hapticSuccess();
@@ -82,14 +82,22 @@ export default function ResultsScreen() {
         <NeonButton
           label={t.playAgain}
           icon="replay"
-          onPress={() => router.replace({ pathname: '/game', params: { category: category.id } })}
+          onPress={() =>
+            game.topic
+              ? router.replace({ pathname: '/ai-game', params: { topic: game.topic } })
+              : router.replace({ pathname: '/game', params: { category: category.id } })
+          }
         />
-        <NeonButton
-          label={t.changeCategory}
-          icon="view-grid-outline"
-          variant="ghost"
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/categories'))}
-        />
+        {game.topic ? (
+          <NeonButton label={t.newTopic} icon="pencil" variant="ghost" onPress={() => router.dismissTo('/ai-quiz')} />
+        ) : (
+          <NeonButton
+            label={t.changeCategory}
+            icon="view-grid-outline"
+            variant="ghost"
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/categories'))}
+          />
+        )}
         <NeonButton
           label={t.viewLeaderboard}
           icon="podium"
