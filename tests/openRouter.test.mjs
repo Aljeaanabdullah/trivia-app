@@ -7,7 +7,7 @@ const ai = await src('services/openRouter.ts');
 const { shuffleAnswers } = await src('features/game/selectQuestions.ts');
 
 const FAKE_KEY = 'sk-or-v1-test-0000000000000000000000000000000000000000';
-const MODEL = 'google/gemma-4-31b-it:free';
+const MODEL = 'nvidia/nemotron-3-ultra-550b-a55b:free';
 
 const fiveQuestions = (correctIndexes = [0, 1, 2, 3, 0]) => ({
   questions: correctIndexes.map((ci, i) => ({
@@ -49,6 +49,8 @@ test('one POST to OpenRouter chat completions with a :free model, system + user 
   assert.equal(calls[0].body.model, MODEL);
   assert.deepEqual(calls[0].body.messages.map((m) => m.role), ['system', 'user']);
   assert.equal(calls[0].body.messages[1].content, 'Topic: Volcanoes');
+  // Reasoning off so free "thinking" models don't spend the token budget before the JSON.
+  assert.deepEqual(calls[0].body.reasoning, { enabled: false });
 });
 
 test('system prompt contains every required rule', () => {
@@ -155,6 +157,7 @@ for (const [status, kind] of [
   [401, 'unauthorized'],
   [402, 'credits'],
   [404, 'notFound'],
+  [400, 'notFound'],
   [429, 'rateLimit'],
   [500, 'server'],
 ]) {

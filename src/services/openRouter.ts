@@ -11,7 +11,7 @@ import type { Language, Question } from '@/types/trivia';
  */
 
 export const OPENROUTER_CHAT_URL = 'https://openrouter.ai/api/v1/chat/completions';
-export const DEFAULT_AI_MODEL = 'google/gemma-4-31b-it:free';
+export const DEFAULT_AI_MODEL = 'nvidia/nemotron-3-ultra-550b-a55b:free';
 export const AI_QUESTION_COUNT = 5;
 export const AI_CATEGORY_ID = 'ai-quiz';
 export const TOPIC_MIN = 2;
@@ -69,6 +69,8 @@ export function buildSystemPrompt(language: Language): string {
     `- Exactly ${AI_QUESTION_COUNT} questions, all about the topic. No duplicate or near-duplicate questions.`,
     '- Each question has exactly 4 answer options: 1 correct answer and 3 plausible but clearly wrong answers. All 4 options must be different.',
     '- Be as factually accurate as possible. Use well-established facts; avoid ambiguous, opinion-based or time-sensitive questions.',
+    '- If you are not sure a fact is correct, write a different question you are sure about.',
+    '- Before answering, double-check that the answer at correctIndex is really true and the other three are really false.',
     `- Write every question and answer in ${LANGUAGE_NAMES[language]}.`,
     '- Spread the correct answer across different positions (use correctIndex values 0, 1, 2 and 3 across the questions).',
     '- Keep questions under 120 characters and answers under 60 characters. Keep all content family-friendly.',
@@ -90,8 +92,12 @@ export function buildRequestBody(topic: string, language: Language, model: strin
       { role: 'system', content: buildSystemPrompt(language) },
       { role: 'user', content: buildUserPrompt(topic) },
     ],
-    temperature: 0.7,
-    max_tokens: 2000,
+    // Lower temperature keeps free models closer to well-known facts.
+    temperature: 0.4,
+    max_tokens: 3000,
+    // Many free models "think" first; with reasoning on they can spend the
+    // whole token budget before writing any JSON. Models that don't reason ignore this.
+    reasoning: { enabled: false },
   };
 }
 
@@ -180,6 +186,8 @@ export function validateAiQuestions(data: unknown): Question[] {
 /** Maps an HTTP status to an error kind. */
 export function errorKindForStatus(status: number): AiErrorKind {
   if (status === 401 || status === 403) return 'unauthorized';
+  // OpenRouter answers 400 for an invalid model ID; the request body is ours, so that's the likely cause.
+  if (status === 400) return 'notFound';
   if (status === 402) return 'credits';
   if (status === 404) return 'notFound';
   if (status === 408) return 'timeout';
